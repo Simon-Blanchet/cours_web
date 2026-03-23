@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request, render_template
 import pymysql
 
 app = Flask(__name__)
@@ -18,6 +18,21 @@ def hello_world():
     return f"<p>Hello, World! {result}</p>"
 
 
-@app.route("/voir_artiste")
-def voir_artiste():
-    
+@app.route("/artists", methods=["GET", "POST"])
+def show_artists():
+    artists = None
+    if request.method == "POST":
+        query = request.form.get("query")
+        conn = pymysql.connect(
+            user="root",
+            password="uimm",
+            host="localhost",  # ou le nom du service mysql/mariadb du docker-compose
+            port=3306,
+            database="spectacle")
+        cursor = conn.cursor(dictionary=True)
+        print(f"SELECT * FROM artiste WHERE nom LIKE '{query}'")
+        # cursor.execute(f"SELECT * FROM artiste WHERE nom LIKE '{query}'")
+        cursor.execute("SELECT * FROM artiste WHERE nom LIKE %s", (f"{query}",))
+        result = cursor.fetchall()
+        artists = [artist["nom"] for artist in result]
+    return render_template("index.html", artists=artists)
