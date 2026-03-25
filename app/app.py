@@ -1,5 +1,6 @@
 from flask import Flask, request, render_template
 import pymysql
+import pymysql.cursors
 
 app = Flask(__name__)
  
@@ -28,11 +29,13 @@ def show_artists():
             password="uimm",
             host="localhost",  # ou le nom du service mysql/mariadb du docker-compose
             port=3306,
-            database="spectacle")
-        cursor = conn.cursor(dictionary=True)
-        print(f"SELECT * FROM artiste WHERE nom LIKE '{query}'")
+            database="spectacle",
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        cursor = conn.cursor()
+        print(f"SELECT * FROM Artistes WHERE nom LIKE '{query}'")
         # cursor.execute(f"SELECT * FROM artiste WHERE nom LIKE '{query}'")
-        cursor.execute("SELECT * FROM artiste WHERE nom LIKE %s", (f"{query}",))
+        cursor.execute("SELECT * FROM Artistes WHERE nom LIKE %s", (f"%{query}%",))
         result = cursor.fetchall()
-        artists = [artist["nom"] for artist in result]
+        artists = [artist for artist in result]
     return render_template("index.html", artists=artists)
